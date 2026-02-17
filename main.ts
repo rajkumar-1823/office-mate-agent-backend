@@ -18,17 +18,14 @@ export async function createApp(): Promise<INestApplication> {
   const app = await NestFactory.create(AppModule);
   app.enableCors();
   setupSwagger(app);
-  await app.init(); // Only used in serverless — listen() will call this internally in local dev
-  return app;
+  return app; // No init() or listen() here
 }
 
-// Local development only
+// Local development only — Vercel will never hit this
 if (require.main === module) {
   (async () => {
-    const app = await NestFactory.create(AppModule);
-    app.enableCors();
-    setupSwagger(app);
-    await app.listen(process.env.PORT || 3000); // listen() handles init() internally
+    const app = await createApp();
+    await app.listen(process.env.PORT || 3000);
     console.log(`Application is running on: ${await app.getUrl()}`);
   })();
 }
