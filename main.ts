@@ -16,7 +16,7 @@ export function setupSwagger(app: INestApplication) {
 
 export async function createApp(): Promise<INestApplication> {
   const app = await NestFactory.create(AppModule);
-  app.enableCors(); // Allow frontend to connect
+  app.enableCors();
   setupSwagger(app);
   return app;
 }
@@ -27,7 +27,7 @@ async function bootstrap() {
   console.log(`Application is running on: ${await app.getUrl()}`);
 }
 
-// Only run the server directly when not in serverless mode
+
 if (require.main === module) {
   bootstrap();
 }
