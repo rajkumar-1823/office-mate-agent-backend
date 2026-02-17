@@ -1,31 +1,27 @@
 import 'reflect-metadata';
 import { createApp } from '../main';
 
-// Cache the NestJS app instance for warm starts
-let app: any;
+// Cache the Express instance across warm serverless invocations
+let expressApp: any;
 
 export default async function handler(req: any, res: any) {
     try {
-        if (!app) {
-            // Basic sanity check
+        if (!expressApp) {
             if (!process.env.MONGODB_URI) {
                 console.error('[Serverless] CRITICAL ERROR: MONGODB_URI is missing!');
             }
 
+            // createApp() handles NestFactory.create + enableCors + swagger + init
             const nestApp = await createApp();
-            await nestApp.init();
-
-            // Get the underlying Express instance
-            app = nestApp.getHttpAdapter().getInstance();
+            expressApp = nestApp.getHttpAdapter().getInstance();
         }
 
-        // Forward the request directly to Express
-        return app(req, res);
+        return expressApp(req, res);
     } catch (error: any) {
         console.error('SERVERLESS HANDLER ERROR:', error);
         return res.status(500).json({
             error: 'Internal Server Error',
-            details: error instanceof Error ? error.message : String(error)
+            details: error instanceof Error ? error.message : String(error),
         });
     }
 }
