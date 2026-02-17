@@ -16,7 +16,7 @@ export function setupSwagger(app: INestApplication) {
 
 export async function createApp(): Promise<INestApplication> {
   const app = await NestFactory.create(AppModule);
-  app.enableCors();
+  app.enableCors(); 
   setupSwagger(app);
   return app;
 }
