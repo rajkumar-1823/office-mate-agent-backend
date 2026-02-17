@@ -1,34 +1,35 @@
 import 'reflect-metadata';
-import serverlessExpress from '@codegenie/serverless-express';
 import { createApp } from '../main';
 
-let cachedServer: any;
+// Cache the NestJS app instance for warm starts
+let app: any;
 
 export default async function handler(req: any, res: any) {
-    console.log('[Serverless] Handler called');
+    // console.log('[Serverless] Handler called'); // Uncomment for debugging
     try {
-        console.log('[Serverless] Checking environment variables...');
-        if (!process.env.MONGODB_URI) {
-            console.error('[Serverless] ERROR: MONGODB_URI is missing!');
-        } else {
-            console.log('[Serverless] MONGODB_URI is set');
+        if (!app) {
+            // console.log('[Serverless] Initializing new app instance...'); // Uncomment for debugging
+
+            // Basic sanity check for critical env var
+            if (!process.env.MONGODB_URI) {
+                console.error('[Serverless] CRITICAL ERROR: MONGODB_URI is missing!');
+            }
+
+            const nestApp = await createApp();
+            await nestApp.init();
+
+            // Get the underlying Express instance
+            app = nestApp.getHttpAdapter().getInstance();
+            // console.log('[Serverless] NestJS app initialized'); // Uncomment for debugging
         }
 
-        if (!cachedServer) {
-            console.log('[Serverless] Initializing new app instance...');
-            const app = await createApp();
-            console.log('[Serverless] NestJS app created');
-            await app.init();
-            console.log('[Serverless] NestJS app initialized');
-            const expressApp = app.getHttpAdapter().getInstance();
-            cachedServer = serverlessExpress({ app: expressApp });
-            console.log('[Serverless] Serverless adapter ready');
-        } else {
-            console.log('[Serverless] Using cached server');
-        }
-        return cachedServer(req, res);
-    } catch (error) {
+        // Forward the request directly to Express
+        return app(req, res);
+    } catch (error: any) {
         console.error('SERVERLESS HANDLER ERROR:', error);
-        return res.status(500).json({ error: 'Internal Server Error', details: error.message });
+        return res.status(500).json({
+            error: 'Internal Server Error',
+            details: error instanceof Error ? error.message : String(error)
+        });
     }
 }
