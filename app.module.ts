@@ -7,6 +7,7 @@ import { LogsModule } from './logs/logs.module';
 import { RoomsModule } from './rooms/rooms.module';
 import { RoomElectronicsMapModule } from './room-electronics-map/room-electronics-map.module';
 import { LayoutModule } from './layout/layout.module';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -26,5 +27,7 @@ import { LayoutModule } from './layout/layout.module';
     RoomElectronicsMapModule,
     LayoutModule,
   ],
+  controllers: [AppController],
 })
 export class AppModule { }
+
